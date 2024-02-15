@@ -187,9 +187,9 @@ int main(){
 
 ## **Sobre o código**
 
-Resumindo o código contém funções para criação e remoção de conta identificada por texto e adição de uma mensagem qualquer. Tudo é feito navegando por um menu mostrado no terminal e a ordem das execuções é importante para a resolução do problema.
+Resumindo, o código contém funções para criação e remoção de conta identificada por texto e adição de uma mensagem qualquer. Tudo é feito navegando por um menu mostrado no terminal e a ordem das execuções é importante para a resolução do problema.
 
-A parte inicial que precisamos estar atento é como as informações são organizadas no programa: Isso é feito por um struct chamado cmd que vai conter uma referência para a função a ser executada (whatToDo) e também o nome do usuário (username)
+A parte inicial que precisamos estar atentos é como as informações são organizadas no programa: Isso é feito por um struct chamado cmd que vai conter uma referência para a função a ser executada (whatToDo) e também o nome do usuário (username)
 
 ```c
 typedef struct {
@@ -212,7 +212,7 @@ void hahaexploitgobrrr(){
 }
 ```
 
-Há também a função s() que mostra no terminal o endereço da função hahaexploitgobrrr (Isso vai ser interessante pois, sabendo o endereço da função hahaexploitgobrrr poderemos tentar encontrar uma forma que executar ela por meio do seu endereço direto)
+Há também a função s() que mostra no terminal o endereço da função hahaexploitgobrrr (Isso vai ser interessante pois, sabendo o endereço da função hahaexploitgobrrr poderemos tentar encontrar uma forma de executar ela por meio do seu endereço direto)
 ```c
 void s(){
  	printf("OOP! Memory leak...%p\n",hahaexploitgobrrr);
