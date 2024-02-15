@@ -25,8 +25,6 @@ Além da dica, temos os arquivos: vuln e vuln.c respectivamente.
 
 # Resolução do problema
 
-## **Transformação do código de encriptação**
-
 Quando pegamos para solucionar o problema descrito nos deparamos com aquele arquivo vuln.c e passamos a observar a sua função e funções executadas:
 
 Abaixo temos o código do arquivo vuln.c:
