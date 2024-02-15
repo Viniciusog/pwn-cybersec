@@ -300,4 +300,58 @@ Ao conectar remotamente com o servidor, através do comando ```nc mercury.picoct
 
 Que contém as opções:
 - S: Mostra endereço da função hahaexploitgobrrr que imprime a flag
-- I: Deleta uma conta (Apenas realiza free )
+- I: Deleta uma conta (Apenas realiza free para os dados apontados pelo ponteiro do *cmd)
+- M: Cria um conta
+- P: Paga por assinatura premium
+- l: Deixa uma mensagem
+- e: Sai do programa
+
+### Resolvendo o problema
+
+Sabendo que a opção "M" cria uma nova conta para o nosso usuário colocando um username e atribuindo a função de execução whatToDo para ser m():
+
+```c
+case 'M':
+ 	user->whatToDo = (void*)m;
+	puts("===========================");
+	puts("Registration: Welcome to Twixer!");
+	puts("Enter your username: ");
+	user->username = getsline();
+```
+
+E que, a opção "l" deixa uma mensagem gravada no heap:
+
+```c
+// Parte do código de manipulação do menu
+...
+case 'L':
+    leaveMessage();
+    break;
+...
+
+// Função de gravação da mensagem
+void leaveMessage(){
+    puts("I only read premium member messages but you can ");
+    puts("try anyways:");
+    char* msg = (char*)malloc(8);
+    read(0, msg, 8);
+}
+```
+
+Sabendo que o sistema onde estamos executando o código remoto contém 32 bits, então o nosso struct mostrado abaixo vai conter 8 bytes no total:
+- uintptr_t (Dado inteiro sem sinal): 4 bytes
+- char *: Em sistema de 32 bits ponteiros possuem 4 bytes para conseguir representar qualquer endereço existente possível
+
+```c
+typedef struct {
+	uintptr_t (*whatToDo)();
+	char *username;
+} cmd;
+```
+
+Sendo assim, ao criar uma conta iremos colocar os dados de whatToDo e username no heap, ocupando 8 bytes.
+Entretanto, ao remover uma conta estaremos apenas indicando para o sistema que o espaço de 8 bytes anteriormente utilizado agora está livre para ser utilizado novamente, mantendo o ponteiro ainda apontando para aquele espaço de memória.
+
+Somado a isso, quando executamos a função de armazenamento de mensagem estamos realizando um malloc com tamanho de 8 bytes e a localização desse novo mapeamento no heap será na mesma posição dos dados do último free realizado (Ou seja, a mensagem será colocada na mesma posição que estavam os dados do struct, já que ambos possuem 8 bytes)
+
+
